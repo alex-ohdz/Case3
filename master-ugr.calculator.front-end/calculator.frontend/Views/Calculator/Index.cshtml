@@ -2,35 +2,47 @@
     ViewBag.Title = "Calculator";
 }
 
-<h2>Calculator</h2>
+<h2 style="color: #007bff; font-family: Arial, sans-serif; text-align: center; margin-bottom: 20px;">Calculator</h2>
 
-@using (Html.BeginForm())
-{
-        <div>
-            <label for="firstNumber">First Number:</label>
-            <input type="text" id="firstNumber" name="firstNumber" />
-        </div>
-        <div>
-            <label for="secondNumber">Second Number:</label>
-            <input type="text" id="secondNumber" name="secondNumber" />
-        </div>
-        <div>
-            <label for="operation">Operation:</label>
-            <select id="operation" name="operation">
-                <option value="Add">Add</option>
-                <option value="Subtract">Subtract</option>
-                <option value="Multiply">Multiply</option>
-                <option value="Divide">Divide</option>
-            </select>
-        </div>
-        <div>
-                <input type="submit" value="Calculate" id="calculateButton"/>
-        </div>
-}
+<div style="max-width: 400px; margin: 0 auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); font-family: Arial, sans-serif;">
+    @using (Html.BeginForm())
+    {
+    <div style="margin-bottom: 15px; text-align: left;">
+        <label for="firstNumber" style="font-weight: bold; display: block; margin-bottom: 5px;">First Number:</label>
+        <input type="text" id="firstNumber" name="firstNumber"
+               style="width: calc(100% - 20px); padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;"
+               placeholder="Enter the first number" />
+    </div>
+    <div style="margin-bottom: 15px; text-align: left;">
+        <label for="secondNumber" style="font-weight: bold; display: block; margin-bottom: 5px;">Second Number:</label>
+        <input type="text" id="secondNumber" name="secondNumber"
+               style="width: calc(100% - 20px); padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;"
+               placeholder="Enter the second number" />
+    </div>
+    <div style="margin-bottom: 15px; text-align: left;">
+        <label for="operation" style="font-weight: bold; display: block; margin-bottom: 5px;">Operation:</label>
+        <select id="operation" name="operation"
+                style="width: calc(100% - 20px); padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
+            <option value="Add">Add</option>
+            <option value="Subtract">Subtract</option>
+            <option value="Multiply">Multiply</option>
+            <option value="Divide">Divide</option>
+        </select>
+    </div>
+    <div style="text-align: center;">
+        <input type="submit" value="Calculate" id="calculateButton"
+               style="background-color: #007bff; color: #ffffff; border: none; border-radius: 4px; padding: 10px 20px; font-size: 16px; cursor: pointer;" />
+    </div>
+    }
 
-@if (ViewBag.Result != null)
-{
-        <div>
-                <h3>Result:<div id="result"> @ViewBag.Result</div></h3>
+    @if (ViewBag.Result != null)
+    {
+    <div style="margin-top: 20px; text-align: center; font-family: Arial, sans-serif;">
+        <h3 style="color: #333; margin-bottom: 5px;">Result:</h3>
+        <div id="result"
+             style="background-color: #f8f9fa; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; display: inline-block;">
+            @ViewBag.Result
         </div>
-}
+    </div>
+    }
+</div>

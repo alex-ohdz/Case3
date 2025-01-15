@@ -2,23 +2,38 @@
     ViewBag.Title = "Attribute";
 }
 
-<h2>Atribute Calculator</h2>
+<h2 style="color: #007bff; font-family: Arial, sans-serif; text-align: center; margin-bottom: 20px;">Attribute Calculator</h2>
 
 @using (Html.BeginForm())
 {
-            <div>
-                <label for="number">Enter Number:</label>
-                <input type="text" id="number" name="number" />
-            </div>
-            <div>
-                    <input type="submit" value="Atribute" id="attribute"/>
-            </div>
+    <div style="margin-bottom: 15px; text-align: center;">
+        <label for="number" style="font-weight: bold; font-family: Arial, sans-serif; margin-bottom: 10px; display: block;">Enter Number:</label>
+        <input type="text" id="number" name="number" 
+               style="width: 50%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;" 
+               placeholder="Enter a number" />
+    </div>
+    <div style="text-align: center;">
+        <input type="submit" value="Check Attributes" id="attribute" 
+               style="background-color: #007bff; color: #ffffff; border: none; border-radius: 4px; padding: 10px 20px; font-size: 16px; cursor: pointer;" />
+    </div>
 }
 
 @if (ViewBag.IsPrime != null && ViewBag.IsOdd != null)
 {
-    <div>
-        <h3>Is Prime:</h3><div id="isPrime"><h4>@ViewBag.IsPrime</h4></div>
-        <h3>Is Odd:</h3><div id="isOdd"><h4>@ViewBag.IsOdd</h4></div>
-     </div>
+    <div style="display:flex; flex-direction:column; justify-content:center; align-items:center;  margin-top: 20px; font-family: Arial, sans-serif; ">
+        <div style="margin-bottom: 15px;">
+            <h3 style="color: #333; margin-bottom: 5px;">Is Prime:</h3>
+            <div id="isPrime" 
+                 style="background-color: #f8f9fa; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
+                <h4 style="margin: 0;">@ViewBag.IsPrime</h4>
+            </div>
+        </div>
+        <div>
+            <h3 style="color: #333; margin-bottom: 5px;">Is Odd:</h3>
+            <div id="isOdd" 
+                 style="background-color: #f8f9fa; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
+                <h4 style="margin: 0;">@ViewBag.IsOdd</h4>
+            </div>
+        </div>
+    </div>
 }

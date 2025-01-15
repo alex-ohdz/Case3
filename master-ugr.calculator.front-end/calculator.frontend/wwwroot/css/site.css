@@ -20,3 +20,85 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+/* Estilo general del navbar */
+.navbar {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #ddd;
+    padding: 10px 20px;
+}
+
+/* Estilo del brand en el navbar */
+.navbar-brand {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+    .navbar-brand:hover {
+        color: #0077cc;
+    }
+
+/* Estilo de los enlaces del navbar */
+.nav-link {
+    color: #333 !important;
+    font-size: 18px;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+    .nav-link:hover {
+        color: #0077cc !important;
+    }
+
+/* Espaciado entre los elementos del navbar */
+.nav-item {
+    margin-right: 15px;
+}
+
+/* Contenido principal */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+}
+
+/* Estilo del footer */
+footer {
+    background-color: #f8f9fa;
+    border-top: 2px solid #ddd;
+    text-align: center;
+    padding: 10px 0;
+    font-size: 14px;
+    color: #666;
+}
+
+    /* Estilo de los enlaces en el footer */
+    footer a {
+        text-decoration: none;
+        color: #0077cc;
+        transition: text-decoration 0.3s ease;
+    }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+/* Responsividad */
+@media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .nav-item {
+        margin-bottom: 10px;
+    }
+
+    .navbar-collapse {
+        text-align: center;
+    }
+}
