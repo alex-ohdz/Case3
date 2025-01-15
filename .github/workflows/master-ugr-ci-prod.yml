@@ -9,19 +9,19 @@ on:
 
 env:
     # Front-end Domain    
-    AZURE_WEBAPP_NAME_FRONTEND_UAT: master-ugr-ci-frontend-uat
-    AZURE_WEBAPP_NAME_FRONTEND_PROD: master-ugr-ci-frontend
+    AZURE_WEBAPP_NAME_FRONTEND_UAT: alex-ohdz-calculator-frontend-uat
+    AZURE_WEBAPP_NAME_FRONTEND_PROD: alex-ohdz-calculator-frontend
     AZURE_WEBAPP_PACKAGE_PATH_FRONTEND: master-ugr.calculator.front-end/calculator.frontend/publish
     WORKING_DIRECTORY_FRONTEND: master-ugr.calculator.front-end/calculator.frontend
-    CALCULATOR_FRONTEND_URL_UAT: https://master-ugr-ci-frontend-uat.azurewebsites.net
+    CALCULATOR_FRONTEND_URL_UAT: https://alex-ohdz-calculator-frontend-uat-hgd5e6g2hzbxdmfb.westeurope-01.azurewebsites.net
     TEST_PATH_FRONTEND: master-ugr.calculator.front-end/tests/calculator.frontend.tests
-    CALCULATOR_FRONTEND_URL_PROD: https://master-ugr-ci-frontend.azurewebsites.net/
+    CALCULATOR_FRONTEND_URL_PROD: https://alex-ohdz-calculator-frontend-fggne8b2epegewfe.westeurope-01.azurewebsites.net/
     # Back-end Domain
     AZURE_WEBAPP_NAME_BACKEND_UAT: master-ugr-ci-backend-uat
     AZURE_WEBAPP_NAME_BACKEND_PROD: master-ugr-ci-backend
     AZURE_WEBAPP_PACKAGE_PATH_BACKEND: master-ugr.calculator.back-end/calculator.backend/publish
     WORKING_DIRECTORY_BACKEND: master-ugr.calculator.back-end/calculator.backend
-    CALCULATOR_BACKEND_URL_UAT: https://master-ugr-ci-backend-uat.azurewebsites.net/
+    CALCULATOR_BACKEND_URL_UAT: https://alex-ohdz-calculator-backend-uat-ggdshbg8ejcpbthg.westeurope-01.azurewebsites.net/
     TEST_PATH_BACKEND: master-ugr.calculator.back-end/tests/calculator.backend.test
     # Library Domain
     TEST_PATH_LIB: master-ugr.calculator.lib/tests/calculator.lib.test

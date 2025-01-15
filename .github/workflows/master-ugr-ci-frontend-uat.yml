@@ -9,13 +9,13 @@ on:
 
 env:
   # Environment variables for the workflow
-  AZURE_WEBAPP_NAME: master-ugr-ci-frontend-uat
+  AZURE_WEBAPP_NAME: alex-ohdz-calculator-frontend-uat
   AZURE_WEBAPP_PACKAGE_PATH: master-ugr.calculator.front-end/calculator.frontend/publish
   CONFIGURATION: Release
   DOTNET_CORE_VERSION: 8.0.x
   WORKING_DIRECTORY: master-ugr.calculator.front-end/calculator.frontend
   TEST_PATH: master-ugr.calculator.front-end/tests/calculator.frontend.tests
-  CALCULATOR_FRONTEND_URL: https://master-ugr-ci-frontend-uat.azurewebsites.net
+  CALCULATOR_FRONTEND_URL: https://alex-ohdz-calculator-frontend-uat-hgd5e6g2hzbxdmfb.westeurope-01.azurewebsites.net/
 jobs:
   build:
     runs-on: ubuntu-latest
