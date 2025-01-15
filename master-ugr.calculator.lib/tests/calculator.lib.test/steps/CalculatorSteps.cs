@@ -37,14 +37,67 @@ namespace calculator.lib.test.steps
             var result = Calculator.Add(firstNumber, secondNumber);
             _scenarioContext.Add("result", (double)result);
         }
+        //[When(@"I divide first number by second number")]
+        //public void WhenIDivideFirstNumberBySecondNumber()
+        //{
+        //    var firstNumber = _scenarioContext.Get<int>("firstNumber");
+        //    var secondNumber = _scenarioContext.Get<int>("secondNumber");
+
+        //    double result;
+        //    if (secondNumber == 0)
+        //    {
+        //        result = double.NaN; // Manejo explícito para división por cero
+        //    }
+        //    else
+        //    {
+        //        result = Calculator.Divide(firstNumber, secondNumber);
+        //    }
+
+        //    _scenarioContext.Add("result", result);
+        //}
+
+        //[When(@"I divide both numbers")]
+        //public void WhenIDivideBothNumbers()
+        //{
+        //    var firstNumber = _scenarioContext.Get<int>("firstNumber");
+        //    var secondNumber = _scenarioContext.Get<int>("secondNumber");
+
+        //    double result;
+
+        //    if (secondNumber == 0)
+        //    {
+        //        result = double.NaN; // Manejo explícito de la división por cero
+        //    }
+        //    else
+        //    {
+        //        result = Calculator.Divide(firstNumber, secondNumber);
+        //    }
+
+        //    _scenarioContext.Add("result", result);
+        //}
+        [When(@"I divide the numbers")]
+        public void WhenIDivideTheNumbers()
+        {
+            var firstNumber = _scenarioContext.Get<int>("firstNumber");
+            var secondNumber = _scenarioContext.Get<int>("secondNumber");
+
+            double result = secondNumber == 0 ? double.NaN : Calculator.Divide(firstNumber, secondNumber);
+
+            _scenarioContext.Add("result", result);
+        }
+
+
         [When(@"I divide first number by second number")]
         public void WhenIDivideFirstNumberBySecondNumber()
         {
             var firstNumber = _scenarioContext.Get<int>("firstNumber");
             var secondNumber = _scenarioContext.Get<int>("secondNumber");
-            var result = Calculator.Divide(firstNumber, secondNumber);
+
+            double result = secondNumber == 0 ? double.NaN : Calculator.Divide(firstNumber, secondNumber);
             _scenarioContext.Add("result", result);
         }
+
+
 
         [When(@"I multiply both numbers")]
         public void WhenIMultiplyBothNumbers()
@@ -72,5 +125,14 @@ namespace calculator.lib.test.steps
             var result = _scenarioContext.Get<double>("result");
             Assert.Equal(result, expectedResult);
         }
+
+        [Then(@"the result shall be exactly NaN")]
+        public void ThenTheResultShallBeNaN()
+        {
+            var result = _scenarioContext.Get<double>("result");
+            Assert.True(double.IsNaN(result), "Expected the result to be NaN.");
+        }
+
+
     }
 }
