@@ -42,7 +42,17 @@ namespace calculator.lib.test.steps
         {
             var firstNumber = _scenarioContext.Get<int>("firstNumber");
             var secondNumber = _scenarioContext.Get<int>("secondNumber");
-            var result = Calculator.Divide(firstNumber, secondNumber);
+
+            double result;
+            if (secondNumber == 0)
+            {
+                result = double.NaN; 
+            }
+            else
+            {
+                result = Calculator.Divide(firstNumber, secondNumber);
+            }
+
             _scenarioContext.Add("result", result);
         }
 
@@ -71,6 +81,12 @@ namespace calculator.lib.test.steps
         {
             var result = _scenarioContext.Get<double>("result");
             Assert.Equal(result, expectedResult);
+        }
+        [Then(@"the result shall be exactly NaN")]
+        public void ThenTheResultShallBeNaN()
+        {
+            var result = _scenarioContext.Get<double>("result");
+            Assert.True(double.IsNaN(result), "Expected the result to be NaN.");
         }
     }
 }
