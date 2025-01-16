@@ -22,11 +22,12 @@ namespace calculator.lib
             }
             public static double Divide(double number1, double number2)
             {
-                return ((double)number1) / ((double)number2);
+                return number2 == 0 ? double.NaN : number1 / number2;
             }
+
             public static bool IsPrime(int number)
-            {
-                return number == 2;
-            }
+                {
+                    return number == 2;
+                }
     }
 }
