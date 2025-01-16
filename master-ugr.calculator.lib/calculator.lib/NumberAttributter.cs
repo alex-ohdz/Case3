@@ -29,18 +29,5 @@ namespace calculator.lib
         {
             return number % 2 != 0;
         }
-        //public static double SquareRoot(int number)
-        //{
-        //    return Math.Sqrt(number);
-        //}
-        public static double SquareRoot(int number)
-        {
-            if (number < 0)
-            {
-                throw new ArgumentException("Cannot calculate square root of a negative number.");
-            }
-            return Math.Sqrt(number);
-        }
-
     }
 }
