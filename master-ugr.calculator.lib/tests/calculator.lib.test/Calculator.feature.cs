@@ -285,6 +285,45 @@ this.ScenarioInitialize(scenarioInfo);
             this.ScenarioCleanup();
         }
         
+        [Xunit.SkippableTheoryAttribute(DisplayName="Calculate square root of a number")]
+        [Xunit.TraitAttribute("FeatureTitle", "Calculator")]
+        [Xunit.TraitAttribute("Description", "Calculate square root of a number")]
+        [Xunit.InlineDataAttribute("4", "2", new string[0])]
+        [Xunit.InlineDataAttribute("9", "3", new string[0])]
+        [Xunit.InlineDataAttribute("16", "4", new string[0])]
+        [Xunit.InlineDataAttribute("25", "5", new string[0])]
+        [Xunit.InlineDataAttribute("36", "6", new string[0])]
+        [Xunit.InlineDataAttribute("49", "7", new string[0])]
+        public void CalculateSquareRootOfANumber(string number, string result, string[] exampleTags)
+        {
+            string[] tagsOfScenario = exampleTags;
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            argumentsOfScenario.Add("number", number);
+            argumentsOfScenario.Add("result", result);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Calculate square root of a number", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 43
+this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 44
+    testRunner.Given(string.Format("the number is {0}", number), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 45
+    testRunner.When("I calculate its square root", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 46
+    testRunner.Then(string.Format("the square root should be {0}", result), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
         [System.CodeDom.Compiler.GeneratedCodeAttribute("TechTalk.SpecFlow", "3.9.0.0")]
         [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
         public class FixtureData : System.IDisposable
