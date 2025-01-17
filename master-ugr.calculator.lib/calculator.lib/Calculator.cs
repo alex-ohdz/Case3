@@ -29,5 +29,13 @@ namespace calculator.lib
                 {
                     return number == 2;
                 }
+            public static double SqrtNumber(double number)
+            {
+                if (number < 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(number), "Cannot calculate the square root of a negative number.");
+                }
+                return Math.Sqrt(number);
+            }
     }
 }

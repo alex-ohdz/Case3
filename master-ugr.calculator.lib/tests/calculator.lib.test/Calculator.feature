@@ -40,3 +40,16 @@ Scenario: Division by 0 shall return NaN
     When I divide first number by second number
     Then the result shall be exactly NaN
 
+Scenario Outline: Calculate square root of a number
+    Given the number is <number>
+    When I calculate its square root
+    Then the square root should be <result>
+
+	Examples:
+    | number | result |
+    | 4      | 2      |
+    | 9      | 3      |
+    | 16     | 4      |
+	| 25     | 5      |
+	| 36     | 6      |
+	| 49     | 7      |
