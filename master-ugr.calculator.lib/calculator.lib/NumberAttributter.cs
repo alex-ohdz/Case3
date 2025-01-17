@@ -29,10 +29,6 @@ namespace calculator.lib
         {
             return number % 2 != 0;
         }
-        
-        public static double SqrtNumber(double number)
-        {
-            return Math.Sqrt(number);
-        }
+
     }
 }

@@ -49,5 +49,16 @@ namespace CalculatorAPI.Controllers
             var is_odd = NumberAttributter.IsOdd(number);
             return Ok(new { odd = is_odd, prime = is_prime });
         }
+        [HttpGet("square_root")]
+        public ActionResult<double> SqrtNumber([FromQuery] double number)
+        {
+            //if (number < 0)
+            //{
+            //    return BadRequest(new { error = "Cannot calculate the square root of a negative number." });
+            //}
+
+            var result = Calculator.SqrtNumber(number);
+            return Ok(new { result });
+        }
     }
 }
