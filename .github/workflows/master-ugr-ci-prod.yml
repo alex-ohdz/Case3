@@ -25,6 +25,7 @@ env:
     TEST_PATH_BACKEND: master-ugr.calculator.back-end/tests/calculator.backend.test
     # Library Domain
     TEST_PATH_LIB: master-ugr.calculator.lib/tests/calculator.lib.test
+    REPORTS_DIR: aikido-reports
 
     CONFIGURATION: Release
     DOTNET_CORE_VERSION: 8.0.x
@@ -40,10 +41,32 @@ jobs:
           with:
             dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
             # Setup the .NET SDK version specified in the environment variables
+        # Create a directory for all Aikido reports
+        - name: Create Aikido Reports Directory
+          run: mkdir -p ${{ env.REPORTS_DIR }}
+
         - name: Copying Original Cucumber files from item folder
           run: |
             cp -r items/*.feature ${{ env.TEST_PATH_FRONTEND }}
             rm -rf ${{ env.TEST_PATH_FRONTEND }}/*.feature.cs
+    
+
+        - name: Run SAST with Aikido
+          env:
+              AIKIDO_CLIENT_ID: ${{ secrets.AIKIDO_CLIENT_ID }}
+              AIKIDO_CLIENT_SECRET: ${{ secrets.AIKIDO_CLIENT_SECRET }}
+          run: |
+                curl -sL https://cli.akido.io/install.sh | bash
+                akido auth login --client-id $AIKIDO_CLIENT_ID --client-secret $AIKIDO_CLIENT_SECRET
+                akido scan sast . --output ${{ env.REPORTS_DIR }}/sast-report.json --verbose || exit 1
+
+        - name: Run SCA with Aikido
+          env:
+              AIKIDO_CLIENT_ID: ${{ secrets.AIKIDO_CLIENT_ID }}
+              AIKIDO_CLIENT_SECRET: ${{ secrets.AIKIDO_CLIENT_SECRET }}
+          run: |
+              akido auth login --client-id $AIKIDO_CLIENT_ID --client-secret $AIKIDO_CLIENT_SECRET
+              akido scan sca . --output ${{ env.REPORTS_DIR }}/sca-report.json --verbose || exit 1
         - name: Build
           run: dotnet build ${{ env.TEST_PATH_LIB }} --configuration Debug
         - name: run tests
@@ -63,6 +86,22 @@ jobs:
           run: |
             cp -r items/*.feature ${{ env.TEST_PATH_BACKEND }}
             rm -rf ${{ env.TEST_PATH_BACKEND }}/*.feature.cs
+        - name: Run SAST with Aikido
+          env:
+              AIKIDO_CLIENT_ID: ${{ secrets.AIKIDO_CLIENT_ID }}
+              AIKIDO_CLIENT_SECRET: ${{ secrets.AIKIDO_CLIENT_SECRET }}
+          run: |
+                curl -sL https://cli.akido.io/install.sh | bash
+                akido auth login --client-id $AIKIDO_CLIENT_ID --client-secret $AIKIDO_CLIENT_SECRET
+                akido scan sast . --output ${{ env.REPORTS_DIR }}/sast-report.json --verbose || exit 1
+        
+        - name: Run SCA with Aikido
+          env:
+              AIKIDO_CLIENT_ID: ${{ secrets.AIKIDO_CLIENT_ID }}
+              AIKIDO_CLIENT_SECRET: ${{ secrets.AIKIDO_CLIENT_SECRET }}
+          run: |
+              akido auth login --client-id $AIKIDO_CLIENT_ID --client-secret $AIKIDO_CLIENT_SECRET
+              akido scan sca . --output ${{ env.REPORTS_DIR }}/sca-report.json --verbose || exit 1
         - name: Build
           run: dotnet build ${{ env.TEST_PATH_BACKEND }} --configuration Debug
         - name: run tests
@@ -84,6 +123,24 @@ jobs:
           run: |
             cp -r items/*.feature ${{ env.TEST_PATH_FRONTEND }}
             rm -rf ${{ env.TEST_PATH_FRONTEND }}/*.feature.cs
+        - name: Create Aikido Reports Directory
+          run: mkdir -p aikido-reports
+        # Run SAST with Aikido
+        - name: Run SAST with Aikido
+          env:
+              AIKIDO_CLIENT_ID: ${{ secrets.AIKIDO_CLIENT_ID }}
+              AIKIDO_CLIENT_SECRET: ${{ secrets.AIKIDO_CLIENT_SECRET }}
+          run: |
+                curl -sL https://cli.akido.io/install.sh | bash
+                akido auth login --client-id $AIKIDO_CLIENT_ID --client-secret $AIKIDO_CLIENT_SECRET
+                akido scan sast . --output ${{ env.REPORTS_DIR }}/sast-report.json --verbose || exit 1
+        - name: Run SCA with Aikido
+          env:
+              AIKIDO_CLIENT_ID: ${{ secrets.AIKIDO_CLIENT_ID }}
+              AIKIDO_CLIENT_SECRET: ${{ secrets.AIKIDO_CLIENT_SECRET }}
+          run: |
+              akido auth login --client-id $AIKIDO_CLIENT_ID --client-secret $AIKIDO_CLIENT_SECRET
+              akido scan sca . --output ${{ env.REPORTS_DIR }}/sca-report.json --verbose || exit 1
         - name: Build
           run: dotnet build ${{ env.TEST_PATH_FRONTEND }} --configuration Debug
         - name : Install playwright
@@ -178,6 +235,20 @@ jobs:
           run: |
             cp -r items/*.feature ${{ env.TEST_PATH_FRONTEND }}
             rm -rf ${{ env.TEST_PATH_FRONTEND }}/*.feature.cs
+         # Run DAST with Aikido and save reports
+        - name: Run DAST with Aikido
+          env:
+              AIKIDO_CLIENT_ID: ${{ secrets.AIKIDO_CLIENT_ID }}
+              AIKIDO_CLIENT_SECRET: ${{ secrets.AIKIDO_CLIENT_SECRET }}
+          run: |
+              akido auth login --client-id $AIKIDO_CLIENT_ID --client-secret $AIKIDO_CLIENT_SECRET
+              akido scan dast ${{ env.CALCULATOR_FRONTEND_URL_PROD }} --output ${{ env.REPORTS_DIR }}/dast-report.json --verbose || exit 1
+         # Save all Aikido reports as a single artifact
+        - name: Save Aikido Reports
+          uses: actions/upload-artifact@v4
+          with:
+              name: aikido-reports
+              path: ${{ env.REPORTS_DIR }}
         - name: Build
           run: dotnet build ${{ env.TEST_PATH_FRONTEND }} --configuration Debug
         - name : Install playwright
@@ -187,3 +258,6 @@ jobs:
           run: dotnet test ${{ env.TEST_PATH_FRONTEND }}
           env:
             CALCULATOR_FRONTEND_URL : ${{ env.CALCULATOR_FRONTEND_URL_PROD }}
+
+
+            
