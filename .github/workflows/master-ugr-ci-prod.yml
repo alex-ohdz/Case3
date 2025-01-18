@@ -1,263 +1,135 @@
 name: Build and deploy .NET Core application to Web App into production
 
 on:
-  # Trigger the workflow manually or on push to the 'master' branch
   workflow_dispatch:
   push:
     branches:
-    - main
+      - main
 
 env:
-    # Front-end Domain    
-    AZURE_WEBAPP_NAME_FRONTEND_UAT: alex-ohdz-calculator-frontend-uat
-    AZURE_WEBAPP_NAME_FRONTEND_PROD: alex-ohdz-calculator-frontend
-    AZURE_WEBAPP_PACKAGE_PATH_FRONTEND: master-ugr.calculator.front-end/calculator.frontend/publish
-    WORKING_DIRECTORY_FRONTEND: master-ugr.calculator.front-end/calculator.frontend
-    CALCULATOR_FRONTEND_URL_UAT: https://alex-ohdz-calculator-frontend-uat-hgd5e6g2hzbxdmfb.westeurope-01.azurewebsites.net
-    TEST_PATH_FRONTEND: master-ugr.calculator.front-end/tests/calculator.frontend.tests
-    CALCULATOR_FRONTEND_URL_PROD: https://alex-ohdz-calculator-frontend-fggne8b2epegewfe.westeurope-01.azurewebsites.net/
-    # Back-end Domain
-    AZURE_WEBAPP_NAME_BACKEND_UAT: master-ugr-ci-backend-uat
-    AZURE_WEBAPP_NAME_BACKEND_PROD: master-ugr-ci-backend
-    AZURE_WEBAPP_PACKAGE_PATH_BACKEND: master-ugr.calculator.back-end/calculator.backend/publish
-    WORKING_DIRECTORY_BACKEND: master-ugr.calculator.back-end/calculator.backend
-    CALCULATOR_BACKEND_URL_UAT: https://alex-ohdz-calculator-backend-uat-ggdshbg8ejcpbthg.westeurope-01.azurewebsites.net/
-    TEST_PATH_BACKEND: master-ugr.calculator.back-end/tests/calculator.backend.test
-    # Library Domain
-    TEST_PATH_LIB: master-ugr.calculator.lib/tests/calculator.lib.test
-    REPORTS_DIR: aikido-reports
+  # Front-end Domain
+  AZURE_WEBAPP_NAME_FRONTEND_PROD: alex-ohdz-calculator-frontend
+  AZURE_WEBAPP_PACKAGE_PATH_FRONTEND: master-ugr.calculator.front-end/calculator.frontend/publish
+  WORKING_DIRECTORY_FRONTEND: master-ugr.calculator.front-end/calculator.frontend
+  CALCULATOR_FRONTEND_URL_PROD: https://alex-ohdz-calculator-frontend-fggne8b2epegewfe.westeurope-01.azurewebsites.net/
+  # Back-end Domain
+  AZURE_WEBAPP_NAME_BACKEND_PROD: master-ugr-ci-backend
+  AZURE_WEBAPP_PACKAGE_PATH_BACKEND: master-ugr.calculator.back-end/calculator.backend/publish
+  WORKING_DIRECTORY_BACKEND: master-ugr.calculator.back-end/calculator.backend
+  CALCULATOR_BACKEND_URL_PROD: https://alex-ohdz-calculator-backend-prod.westeurope-01.azurewebsites.net/
+  # Library Domain
+  TEST_PATH_LIB: master-ugr.calculator.lib/tests/calculator.lib.test
+  REPORTS_DIR: aikido-reports
 
-    CONFIGURATION: Release
-    DOTNET_CORE_VERSION: 8.0.x
+  CONFIGURATION: Release
+  DOTNET_CORE_VERSION: 8.0.x
+
 jobs:
-   tests_calculator:
-     runs-on: ubuntu-latest
-     steps: 
-        - uses: actions/checkout@v4
-            # Checkout the repository (each job runs in a fresh VM)
-    
-        - name: Setup .NET SDK
-          uses: actions/setup-dotnet@v4
-          with:
-            dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
-            # Setup the .NET SDK version specified in the environment variables
-        # Create a directory for all Aikido reports
-        - name: Create Aikido Reports Directory
-          run: mkdir -p ${{ env.REPORTS_DIR }}
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Aikido CLI
+        run: |
+          curl -sL https://cli.akido.io/install.sh | bash
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          akido --version
 
-        - name: Copying Original Cucumber files from item folder
-          run: |
-            cp -r items/*.feature ${{ env.TEST_PATH_FRONTEND }}
-            rm -rf ${{ env.TEST_PATH_FRONTEND }}/*.feature.cs
-    
+  tests_calculator:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+      - name: Restore and Build Library
+        run: |
+          dotnet restore ${{ env.TEST_PATH_LIB }}
+          dotnet build ${{ env.TEST_PATH_LIB }} --configuration ${{ env.CONFIGURATION }}
+      - name: Run Library Tests
+        run: dotnet test ${{ env.TEST_PATH_LIB }}
 
-        - name: Run SAST with Aikido
-          env:
-              AIKIDO_CLIENT_ID: ${{ secrets.AIKIDO_CLIENT_ID }}
-              AIKIDO_CLIENT_SECRET: ${{ secrets.AIKIDO_CLIENT_SECRET }}
-          run: |
-                curl -sL https://cli.akido.io/install.sh | bash
-                akido auth login --client-id $AIKIDO_CLIENT_ID --client-secret $AIKIDO_CLIENT_SECRET
-                akido scan sast . --output ${{ env.REPORTS_DIR }}/sast-report.json --verbose || exit 1
+  tests_frontend_uat:
+    runs-on: ubuntu-latest
+    needs: [tests_calculator]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+      - name: Install Playwright
+        run: pwsh ${{ env.WORKING_DIRECTORY_FRONTEND }}/bin/Debug/net8.0/playwright.ps1 install --with-deps
+      - name: Run Frontend Tests
+        run: dotnet test ${{ env.TEST_PATH_FRONTEND }}
 
-        - name: Run SCA with Aikido
-          env:
-              AIKIDO_CLIENT_ID: ${{ secrets.AIKIDO_CLIENT_ID }}
-              AIKIDO_CLIENT_SECRET: ${{ secrets.AIKIDO_CLIENT_SECRET }}
-          run: |
-              akido auth login --client-id $AIKIDO_CLIENT_ID --client-secret $AIKIDO_CLIENT_SECRET
-              akido scan sca . --output ${{ env.REPORTS_DIR }}/sca-report.json --verbose || exit 1
-        - name: Build
-          run: dotnet build ${{ env.TEST_PATH_LIB }} --configuration Debug
-        - name: run tests
-            # Run tests
-          run: dotnet test ${{ env.TEST_PATH_LIB }}
-   tests_backend_uat:
-     runs-on: ubuntu-latest
-     steps: 
-        - uses: actions/checkout@v4
-        # Checkout the repository (each job runs in a fresh VM)
-        - name: Setup .NET SDK
-          uses: actions/setup-dotnet@v4
-          with:
-            dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
-        # Setup the .NET SDK version specified in the environment variables
-        - name: Copying Original Cucumber files from item folder
-          run: |
-            cp -r items/*.feature ${{ env.TEST_PATH_BACKEND }}
-            rm -rf ${{ env.TEST_PATH_BACKEND }}/*.feature.cs
-        - name: Run SAST with Aikido
-          env:
-              AIKIDO_CLIENT_ID: ${{ secrets.AIKIDO_CLIENT_ID }}
-              AIKIDO_CLIENT_SECRET: ${{ secrets.AIKIDO_CLIENT_SECRET }}
-          run: |
-                curl -sL https://cli.akido.io/install.sh | bash
-                akido auth login --client-id $AIKIDO_CLIENT_ID --client-secret $AIKIDO_CLIENT_SECRET
-                akido scan sast . --output ${{ env.REPORTS_DIR }}/sast-report.json --verbose || exit 1
-        
-        - name: Run SCA with Aikido
-          env:
-              AIKIDO_CLIENT_ID: ${{ secrets.AIKIDO_CLIENT_ID }}
-              AIKIDO_CLIENT_SECRET: ${{ secrets.AIKIDO_CLIENT_SECRET }}
-          run: |
-              akido auth login --client-id $AIKIDO_CLIENT_ID --client-secret $AIKIDO_CLIENT_SECRET
-              akido scan sca . --output ${{ env.REPORTS_DIR }}/sca-report.json --verbose || exit 1
-        - name: Build
-          run: dotnet build ${{ env.TEST_PATH_BACKEND }} --configuration Debug
-        - name: run tests
-          # Run tests
-          run: dotnet test ${{ env.TEST_PATH_BACKEND }}
-          env:
-            CALCULATOR_BACKEND_URL : ${{ env.CALCULATOR_BACKEND_URL_UAT }}
-   tests_frontend_uat:
-     runs-on: ubuntu-latest
-     steps: 
-        - uses: actions/checkout@v4
-        # Checkout the repository (each job runs in a fresh VM)
-        - name: Setup .NET SDK
-          uses: actions/setup-dotnet@v4
-          with:
-            dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
-        # Setup the .NET SDK version specified in the environment variables
-        - name: Copying Original Cucumber files from item folder
-          run: |
-            cp -r items/*.feature ${{ env.TEST_PATH_FRONTEND }}
-            rm -rf ${{ env.TEST_PATH_FRONTEND }}/*.feature.cs
-        - name: Create Aikido Reports Directory
-          run: mkdir -p aikido-reports
-        # Run SAST with Aikido
-        - name: Run SAST with Aikido
-          env:
-              AIKIDO_CLIENT_ID: ${{ secrets.AIKIDO_CLIENT_ID }}
-              AIKIDO_CLIENT_SECRET: ${{ secrets.AIKIDO_CLIENT_SECRET }}
-          run: |
-                curl -sL https://cli.akido.io/install.sh | bash
-                akido auth login --client-id $AIKIDO_CLIENT_ID --client-secret $AIKIDO_CLIENT_SECRET
-                akido scan sast . --output ${{ env.REPORTS_DIR }}/sast-report.json --verbose || exit 1
-        - name: Run SCA with Aikido
-          env:
-              AIKIDO_CLIENT_ID: ${{ secrets.AIKIDO_CLIENT_ID }}
-              AIKIDO_CLIENT_SECRET: ${{ secrets.AIKIDO_CLIENT_SECRET }}
-          run: |
-              akido auth login --client-id $AIKIDO_CLIENT_ID --client-secret $AIKIDO_CLIENT_SECRET
-              akido scan sca . --output ${{ env.REPORTS_DIR }}/sca-report.json --verbose || exit 1
-        - name: Build
-          run: dotnet build ${{ env.TEST_PATH_FRONTEND }} --configuration Debug
-        - name : Install playwright
-          run: pwsh ${{ env.TEST_PATH_FRONTEND }}/bin/Debug/net8.0/playwright.ps1 install --with-deps
-        - name: run tests
-          # Run tests
-          run: dotnet test ${{ env.TEST_PATH_FRONTEND }}
-          env:
-            CALCULATOR_FRONTEND_URL : ${{ env.CALCULATOR_FRONTEND_URL_UAT }}
-   build_backend:
-     runs-on: ubuntu-latest
-     needs: [tests_frontend_uat, tests_calculator, tests_backend_uat]
-     steps:
-        - uses: actions/checkout@v4
-        - name: Setup .NET SDK
-          uses: actions/setup-dotnet@v4
-          with:
-            dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
-        - name: Restore Back-End
-          run: dotnet restore "${{ env.WORKING_DIRECTORY_BACKEND }}"
-        - name: Build Back-End
-          run: dotnet build "${{ env.WORKING_DIRECTORY_BACKEND }}" --configuration ${{ env.CONFIGURATION }} --no-restore
-        - name: Package Back-End
-          run: dotnet publish "${{ env.WORKING_DIRECTORY_BACKEND }}" --configuration ${{ env.CONFIGURATION }} --no-build --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH_BACKEND }}"
-        - name: Publish Artifacts Back-End
-          uses: actions/upload-artifact@v4
-          with:
-            name: webapp-backend
-            path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH_BACKEND }}
-   build_frontend:
-     runs-on: ubuntu-latest
-     needs: [tests_frontend_uat, tests_calculator, tests_backend_uat]
-     steps:
-        - uses: actions/checkout@v4
-        - name: Setup .NET SDK
-          uses: actions/setup-dotnet@v4
-          with:
-            dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
-        - name: Restore Front-End
-          run: dotnet restore "${{ env.WORKING_DIRECTORY_FRONTEND }}"
-        - name: Build Front-End
-          run: dotnet build "${{ env.WORKING_DIRECTORY_FRONTEND }}" --configuration ${{ env.CONFIGURATION }} --no-restore
-        - name: Package Front-End
-          run: dotnet publish "${{ env.WORKING_DIRECTORY_FRONTEND }}" --configuration ${{ env.CONFIGURATION }} --no-build --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH_FRONTEND }}"
-        - name: Publish Artifacts Back-End
-          uses: actions/upload-artifact@v4
-          with:
-            name: webapp-frontend
-            path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH_FRONTEND }}
-   deploy_backend:
-     runs-on: ubuntu-latest
-     needs: [build_frontend,build_backend]
-     steps:
-        - name: Download Back-End artifact from build job
-          uses: actions/download-artifact@v4
-          with:
-            name: webapp-backend
-            path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH_BACKEND }}
-        - name: Deploy Back-End to Azure WebApp
-          uses: azure/webapps-deploy@v2
-          with:
-              app-name: ${{ env.AZURE_WEBAPP_NAME_BACKEND_PROD }}
-              package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH_BACKEND }}
-              publish-profile: ${{ secrets.MASTER_UGR_CI_BACKEND_PROD_SPN }}
-   deploy_frontend:
-     runs-on: ubuntu-latest
-     needs: [build_frontend,build_backend]
-     steps:
-        - name: Download Front-End artifact from build job
-          uses: actions/download-artifact@v4
-          with:
-            name: webapp-frontend
-            path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH_FRONTEND }}
-        - name: Deploy Front-End to Azure WebApp
-          uses: azure/webapps-deploy@v2
-          with:
-              app-name: ${{ env.AZURE_WEBAPP_NAME_FRONTEND_PROD }}
-              package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH_FRONTEND }}
-              publish-profile: ${{ secrets.MASTER_UGR_CI_FRONTEND_PROD_SPN }}
-   smoke_tests:
-     runs-on: ubuntu-latest
-     needs: [deploy_backend,deploy_frontend]
-     steps: 
-        - uses: actions/checkout@v4
-        # Checkout the repository (each job runs in a fresh VM)
-        - name: Setup .NET SDK
-          uses: actions/setup-dotnet@v4
-          with:
-            dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
-        # Setup the .NET SDK version specified in the environment variables
-        - name: Copying Original Cucumber files from item folder
-          run: |
-            cp -r items/*.feature ${{ env.TEST_PATH_FRONTEND }}
-            rm -rf ${{ env.TEST_PATH_FRONTEND }}/*.feature.cs
-         # Run DAST with Aikido and save reports
-        - name: Run DAST with Aikido
-          env:
-              AIKIDO_CLIENT_ID: ${{ secrets.AIKIDO_CLIENT_ID }}
-              AIKIDO_CLIENT_SECRET: ${{ secrets.AIKIDO_CLIENT_SECRET }}
-          run: |
-              akido auth login --client-id $AIKIDO_CLIENT_ID --client-secret $AIKIDO_CLIENT_SECRET
-              akido scan dast ${{ env.CALCULATOR_FRONTEND_URL_PROD }} --output ${{ env.REPORTS_DIR }}/dast-report.json --verbose || exit 1
-         # Save all Aikido reports as a single artifact
-        - name: Save Aikido Reports
-          uses: actions/upload-artifact@v4
-          with:
-              name: aikido-reports
-              path: ${{ env.REPORTS_DIR }}
-        - name: Build
-          run: dotnet build ${{ env.TEST_PATH_FRONTEND }} --configuration Debug
-        - name : Install playwright
-          run: pwsh ${{ env.TEST_PATH_FRONTEND }}/bin/Debug/net8.0/playwright.ps1 install --with-deps
-        - name: run tests
-          # Run tests
-          run: dotnet test ${{ env.TEST_PATH_FRONTEND }}
-          env:
-            CALCULATOR_FRONTEND_URL : ${{ env.CALCULATOR_FRONTEND_URL_PROD }}
+  build_frontend:
+    runs-on: ubuntu-latest
+    needs: [tests_frontend_uat]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+      - name: Build and Publish Frontend
+        run: |
+          dotnet build ${{ env.WORKING_DIRECTORY_FRONTEND }}
+          dotnet publish ${{ env.WORKING_DIRECTORY_FRONTEND }} --output ${{ env.AZURE_WEBAPP_PACKAGE_PATH_FRONTEND }}
 
+  security_checks:
+    runs-on: ubuntu-latest
+    needs: [build_frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run SAST and SCA
+        env:
+          AIKIDO_CLIENT_ID: ${{ secrets.AIKIDO_CLIENT_ID }}
+          AIKIDO_CLIENT_SECRET: ${{ secrets.AIKIDO_CLIENT_SECRET }}
+        run: |
+          akido auth login --client-id $AIKIDO_CLIENT_ID --client-secret $AIKIDO_CLIENT_SECRET
+          akido scan sast ${{ env.WORKING_DIRECTORY_FRONTEND }} --output ${{ env.REPORTS_DIR }}/frontend-sast.json
+          akido scan sca ${{ env.WORKING_DIRECTORY_BACKEND }} --output ${{ env.REPORTS_DIR }}/backend-sca.json
 
-            
+  deploy:
+    runs-on: ubuntu-latest
+    needs: security_checks
+    steps:
+      - name: Deploy Backend
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME_BACKEND_PROD }}
+          publish-profile: ${{ secrets.MASTER_UGR_CI_BACKEND_PROD_SPN }}
+          package: ${{ env.WORKING_DIRECTORY_BACKEND }}
+      - name: Deploy Frontend
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME_FRONTEND_PROD }}
+          publish-profile: ${{ secrets.MASTER_UGR_CI_FRONTEND_PROD_SPN }}
+          package: ${{ env.WORKING_DIRECTORY_FRONTEND }}
+      - name: Verify Deployment
+        run: |
+          FRONTEND_STATUS=$(curl -o /dev/null -s -w "%{http_code}" ${{ env.CALCULATOR_FRONTEND_URL_PROD }})
+          BACKEND_STATUS=$(curl -o /dev/null -s -w "%{http_code}" ${{ env.CALCULATOR_BACKEND_URL_PROD }})
+          if [ "$FRONTEND_STATUS" -ne 200 ] || [ "$BACKEND_STATUS" -ne 200 ]; then
+            echo "Deployment failed: Frontend status $FRONTEND_STATUS, Backend status $BACKEND_STATUS"
+            exit 1
+          fi
+
+  smoke_tests:
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - name: Run DAST with Aikido
+        env:
+          AIKIDO_CLIENT_ID: ${{ secrets.AIKIDO_CLIENT_ID }}
+          AIKIDO_CLIENT_SECRET: ${{ secrets.AIKIDO_CLIENT_SECRET }}
+        run: |
+          akido auth login --client-id $AIKIDO_CLIENT_ID --client-secret $AIKIDO_CLIENT_SECRET
+          akido scan dast ${{ env.CALCULATOR_FRONTEND_URL_PROD }} --output ${{ env.REPORTS_DIR }}/frontend-dast.json
+          akido scan dast ${{ env.CALCULATOR_BACKEND_URL_PROD }} --output ${{ env.REPORTS_DIR }}/backend-dast.json
+      - name: Upload Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: ${{ env.REPORTS_DIR }}

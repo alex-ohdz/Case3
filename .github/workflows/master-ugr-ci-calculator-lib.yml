@@ -1,94 +1,83 @@
-name: Build library, run tests and more
+name: Build library, run tests, and more
 
 on:
-  # Trigger the workflow manually or on pull requests to the 'uat' branch
   workflow_dispatch:
   push:
     branches:
-    - lib
+      - lib
   pull_request:
     branches:
-    - dev
+      - dev
 
 env:
-  # Environment variables for the workflow
   CONFIGURATION: Release
   DOTNET_CORE_VERSION: 8.0.x
   WORKING_DIRECTORY: master-ugr.calculator.lib/calculator.lib
   TEST_PATH: master-ugr.calculator.lib/tests/calculator.lib.test
   REPORTS_DIR: security-reports
+  CALCULATOR_FRONTEND_URL_PROD: https://alex-ohdz-calculator-frontend-fggne8b2epegewfe.westeurope-01.azurewebsites.net/
+  CALCULATOR_BACKEND_URL_UAT: https://alex-ohdz-calculator-backend-uat-ggdshbg8ejcpbthg.westeurope-01.azurewebsites.net/
 jobs:
-  build:
+  setup_aikido:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-      # Checkout the repository      
-    - name: Listing current dir
-      run: ls -la
-    - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
-      # Setup the .NET SDK version specified in the environment variables
+      - name: Install Aikido CLI
+        run: |
+          curl -sL https://cli.akido.io/install.sh | bash
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - name: Verify Aikido CLI Installation
+        run: akido --version
 
-    - name: Restore
-      run: dotnet restore "${{ env.WORKING_DIRECTORY }}"
-      # Restore the dependencies for the .NET project
-
-    - name: Build
-      run: dotnet build "${{ env.WORKING_DIRECTORY }}" --configuration ${{ env.CONFIGURATION }} --no-restore
-      # Build the .NET project in Release configuration without restoring dependencies
-    - name: Create Reports Directory
-      run: mkdir -p ${{ env.REPORTS_DIR }}
-
-    - name: Run SAST with Aikido
-      env:
+  build:
+    runs-on: ubuntu-latest
+    needs: setup_aikido
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+      - name: Restore Dependencies
+        run: dotnet restore "${{ env.WORKING_DIRECTORY }}"
+      - name: Build Project
+        run: dotnet build "${{ env.WORKING_DIRECTORY }}" --configuration ${{ env.CONFIGURATION }} --no-restore
+      - name: Create Reports Directory
+        run: mkdir -p ${{ env.REPORTS_DIR }}
+      - name: Run SAST with Aikido
+        env:
           AIKIDO_CLIENT_ID: ${{ secrets.AIKIDO_CLIENT_ID }}
           AIKIDO_CLIENT_SECRET: ${{ secrets.AIKIDO_CLIENT_SECRET }}
-      run: |
-          curl -sL https://cli.akido.io/install.sh | bash
+        run: |
           akido auth login --client-id $AIKIDO_CLIENT_ID --client-secret $AIKIDO_CLIENT_SECRET
           akido scan sast . --output ${{ env.REPORTS_DIR }}/sast-report.json --verbose || exit 1
-
-    - name: Run SCA with Aikido
-      env:
+      - name: Run SCA with Aikido
+        env:
           AIKIDO_CLIENT_ID: ${{ secrets.AIKIDO_CLIENT_ID }}
           AIKIDO_CLIENT_SECRET: ${{ secrets.AIKIDO_CLIENT_SECRET }}
-      run: |
+        run: |
           akido auth login --client-id $AIKIDO_CLIENT_ID --client-secret $AIKIDO_CLIENT_SECRET
           akido scan sca . --output ${{ env.REPORTS_DIR }}/sca-report.json --verbose || exit 1
-
-    - name: Save Security Reports
-      uses: actions/upload-artifact@v4
-      with:
+      - name: Save Security Reports
+        uses: actions/upload-artifact@v4
+        with:
           name: build-security-reports
           path: ${{ env.REPORTS_DIR }}
+
   tests:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - uses: actions/checkout@v4
-        # Checkout the repository (each job runs in a fresh VM)
-  
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
-        # Setup the .NET SDK version specified in the environment variables
-      - name: run tests
+      - name: Run Unit Tests
         run: dotnet test ${{ env.TEST_PATH }}
-      
+
   dast_frontend:
     runs-on: ubuntu-latest
     needs: tests
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
-      - name: Create Reports Directory
-        run: mkdir -p ${{ env.REPORTS_DIR }}
       - name: Run DAST for Frontend
         env:
           AIKIDO_CLIENT_ID: ${{ secrets.AIKIDO_CLIENT_ID }}
@@ -106,13 +95,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: tests
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
-      - name: Create Reports Directory
-        run: mkdir -p ${{ env.REPORTS_DIR }}
       - name: Run DAST for Backend
         env:
           AIKIDO_CLIENT_ID: ${{ secrets.AIKIDO_CLIENT_ID }}
@@ -125,7 +107,4 @@ jobs:
         with:
           name: backend-dast-reports
           path: ${{ env.REPORTS_DIR }}
- 
-    
-
 
