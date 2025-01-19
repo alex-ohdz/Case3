@@ -30,7 +30,7 @@ namespace calculator.lib.test.steps
         {
             // Recupera el número del contexto y calcula la raíz cuadrada usando SqrtNumber
             var number = (double)_scenarioContext["number"];
-            var result = NumberAttributter.SqrtNumber(number);
+            var result = Calculator.SqrtNumber(number);
             _scenarioContext["result"] = result;
         }
 
