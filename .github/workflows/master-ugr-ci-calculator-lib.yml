@@ -30,17 +30,10 @@ jobs:
         with:
           command: test
           args: --sarif-file-output=snyk.sarif --all-projects
-      - name: Generate SARIF report
-        run: snyk test --json-file-output=./security-reports/snyk.sarif
-
-      - name: List files in reports directory
-        run: ls -la ./security-reports
-
-      - name: Upload SARIF results
-        uses: github/codeql-action/upload-sarif@v3
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v2
         with:
-            sarif_file: ./security-reports/snyk.sarif
-
+          sarif_file: snyk.sarif
 
   build:
     runs-on: ubuntu-latest
