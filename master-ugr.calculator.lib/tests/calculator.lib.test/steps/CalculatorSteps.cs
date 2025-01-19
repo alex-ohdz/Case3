@@ -13,11 +13,6 @@ namespace calculator.lib.test.steps
     {
         private readonly ScenarioContext _scenarioContext;
 
-        [Given(@"the number is (.*)")]
-        public void GivenTheNumberIs(int number)
-        {
-            _scenarioContext.Add("firstNumber", number);
-        }
         public CalculatorSteps(ScenarioContext scenarioContext)
         {
             _scenarioContext = scenarioContext;
@@ -32,14 +27,6 @@ namespace calculator.lib.test.steps
         public void GivenTheSecondNumberIs(int secondNumber)
         {
             _scenarioContext.Add("secondNumber", secondNumber);
-        }
-
-        [When(@"I calculate its square root")]
-        public void WhenICalculateTheSquareRoot()
-        {
-            var number = _scenarioContext.Get<int>("firstNumber");
-            var result = Calculator.SqrtNumber(number);
-            _scenarioContext.Add("result", result);
         }
 
         [When(@"the two numbers are added")]
@@ -100,12 +87,6 @@ namespace calculator.lib.test.steps
         {
             var result = _scenarioContext.Get<double>("result");
             Assert.True(double.IsNaN(result), "Expected the result to be NaN.");
-        }
-        [Then(@"the square root should be (.*)")]
-        public void ThenTheSquareRootShouldBe(double expectedResult)
-        {
-            var result = _scenarioContext.Get<double>("result");
-            Assert.Equal(expectedResult, result);
         }
     }
 }

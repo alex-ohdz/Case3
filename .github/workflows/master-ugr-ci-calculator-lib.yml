@@ -1,27 +1,44 @@
-name: Build library, run tests and more
+name: Build library, run tests, and more
 
 on:
-  # Trigger the workflow manually or on pull requests to the 'uat' branch
   workflow_dispatch:
   push:
     branches:
-    - lib
+      - lib
   pull_request:
     branches:
-    - dev
+      - dev
 
 env:
-  # Environment variables for the workflow
   CONFIGURATION: Release
   DOTNET_CORE_VERSION: 8.0.x
   WORKING_DIRECTORY: master-ugr.calculator.lib/calculator.lib
   TEST_PATH: master-ugr.calculator.lib/tests/calculator.lib.test
+  CALCULATOR_FRONTEND_URL_PROD: https://alex-ohdz-calculator-frontend-fggne8b2epegewfe.westeurope-01.azurewebsites.net/
+  CALCULATOR_BACKEND_URL_UAT: https://alex-ohdz-calculator-backend-uat-ggdshbg8ejcpbthg.westeurope-01.azurewebsites.net/
 jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
+        continue-on-error: true # To make sure that SARIF upload gets called
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: test
+          args: --sarif-file-output=snyk.sarif --all-projects
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk.sarif
+
   build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-      # Checkout the repository      
+         
     - name: Listing current dir
       run: ls -la
     - name: Setup .NET SDK
@@ -51,9 +68,3 @@ jobs:
         # Setup the .NET SDK version specified in the environment variables
       - name: run tests
         run: dotnet test ${{ env.TEST_PATH }}
-      
-      
- 
-    
-
-
