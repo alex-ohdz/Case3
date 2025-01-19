@@ -14,7 +14,6 @@ env:
   DOTNET_CORE_VERSION: 8.0.x
   WORKING_DIRECTORY: master-ugr.calculator.lib/calculator.lib
   TEST_PATH: master-ugr.calculator.lib/tests/calculator.lib.test
-  REPORTS_DIR: security-reports
   CALCULATOR_FRONTEND_URL_PROD: https://alex-ohdz-calculator-frontend-fggne8b2epegewfe.westeurope-01.azurewebsites.net/
   CALCULATOR_BACKEND_URL_UAT: https://alex-ohdz-calculator-backend-uat-ggdshbg8ejcpbthg.westeurope-01.azurewebsites.net/
 jobs:
