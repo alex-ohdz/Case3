@@ -26,7 +26,7 @@ jobs:
         # Check out the repository code
 
       - name: Run Snyk Test for Vulnerabilities
-        uses: snyk/actions/node@v2
+        uses: snyk/actions@v3
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
