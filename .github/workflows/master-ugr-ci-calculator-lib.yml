@@ -18,27 +18,22 @@ env:
   CALCULATOR_FRONTEND_URL_PROD: https://alex-ohdz-calculator-frontend-fggne8b2epegewfe.westeurope-01.azurewebsites.net/
   CALCULATOR_BACKEND_URL_UAT: https://alex-ohdz-calculator-backend-uat-ggdshbg8ejcpbthg.westeurope-01.azurewebsites.net/
 jobs:
-  security_scan:
+  security:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        # Check out the repository code
-
-      - name: Run Snyk Test for Vulnerabilities
-        uses: snyk/actions@v3
+      - uses: actions/checkout@master
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
+        continue-on-error: true # To make sure that SARIF upload gets called
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: test
           args: --sarif-file-output=snyk.sarif --all-projects
-        # Executes Snyk security scans on all projects and outputs SARIF
-
-      - name: Upload SARIF Results to GitHub Code Scanning
+      - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: snyk.sarif
-        # Uploads the SARIF results to GitHub Security Tab
   build:
     runs-on: ubuntu-latest
     steps:
