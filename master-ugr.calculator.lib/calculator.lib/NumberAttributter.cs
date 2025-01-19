@@ -29,5 +29,6 @@ namespace calculator.lib
         {
             return number % 2 != 0;
         }
+
     }
 }
